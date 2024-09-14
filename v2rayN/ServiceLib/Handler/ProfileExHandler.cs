@@ -91,7 +91,8 @@ namespace ServiceLib.Handler
                 indexId = indexId,
                 delay = 0,
                 speed = 0,
-                sort = 0
+                sort = 0,
+                score = 50
             };
             _lstProfileEx.Add(profileEx);
             IndexIdEnqueue(indexId);

@@ -76,6 +76,7 @@
         public const string CommandSendSnackMsg = "CommandSendSnackMsg";
         public const string CommandStopSpeedTest = "CommandStopSpeedTest";
         public const string CommandRefreshProfiles = "CommandRefreshProfiles";
+        public const string CommandRefreshSubscriptions = "CommandRefreshSubscriptions";
         public const string DelayUnit = "";
         public const string SpeedUnit = "";
         public const int MinFontSize = 10;

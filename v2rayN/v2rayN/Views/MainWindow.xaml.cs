@@ -281,6 +281,13 @@ namespace v2rayN.Views
                     }), DispatcherPriority.Normal);
                     break;
 
+                case EViewAction.DispatcherRefreshSubscriptions:
+                    Application.Current?.Dispatcher.Invoke((() =>
+                    {
+                        ViewModel?.RefreshSubscriptions();
+                    }), DispatcherPriority.Normal);
+                    break;
+                
                 case EViewAction.DispatcherRefreshIcon:
                     Application.Current?.Dispatcher.Invoke((() =>
                     {

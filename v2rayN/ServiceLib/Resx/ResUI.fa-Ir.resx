@@ -934,6 +934,9 @@
   <data name="LvTestDelay" xml:space="preserve">
     <value>تاخیر (میلی‌ثانیه)</value>
   </data>
+  <data name="LvScore" xml:space="preserve">
+    <value>Score</value>
+  </data>
   <data name="LvTestSpeed" xml:space="preserve">
     <value>Speed(M/s)</value>
   </data>

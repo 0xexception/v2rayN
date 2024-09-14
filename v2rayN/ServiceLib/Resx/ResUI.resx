@@ -940,6 +940,9 @@
   <data name="LvTestSpeed" xml:space="preserve">
     <value>Speed(M/s)</value>
   </data>
+  <data name="LvScore" xml:space="preserve">
+    <value>Score</value>
+  </data>
   <data name="FailedToRunCore" xml:space="preserve">
     <value>Failed to run Core, please see the log</value>
   </data>

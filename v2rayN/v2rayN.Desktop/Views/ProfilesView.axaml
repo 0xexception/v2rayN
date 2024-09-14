@@ -190,6 +190,10 @@
                         Width="100"
                         Binding="{Binding speedVal}"
                         Header="{x:Static resx:ResUI.LvTestSpeed}" />
+                    <DataGridTextColumn
+                        Width="100"
+                        Binding="{Binding score}"
+                        Header="{x:Static resx:ResUI.LvScore}" />
 
                     <DataGridTextColumn
                         Width="100"

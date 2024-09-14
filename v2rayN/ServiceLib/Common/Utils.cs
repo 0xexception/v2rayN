@@ -763,7 +763,15 @@ namespace ServiceLib.Common
                 return Path.Combine(_tempPath, filename);
             }
         }
-
+        public static string GetScriptPath()
+        {
+            string _tempPath = Path.Combine(StartupPath(), "scripts");
+            if (!Directory.Exists(_tempPath))
+            {
+                Directory.CreateDirectory(_tempPath);
+            }
+            return _tempPath;
+        }
         public static string UnGzip(byte[] buf)
         {
             using MemoryStream sb = new();

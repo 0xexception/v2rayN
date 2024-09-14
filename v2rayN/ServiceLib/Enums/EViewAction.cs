@@ -37,6 +37,7 @@
         DispatcherServerAvailability,
         DispatcherReload,
         DispatcherRefreshServersBiz,
+        DispatcherRefreshSubscriptions,
         DispatcherRefreshIcon,
         DispatcherCheckUpdate,
         DispatcherCheckUpdateFinished,       

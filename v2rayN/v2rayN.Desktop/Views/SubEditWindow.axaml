@@ -150,7 +150,7 @@
                     Grid.Row="6"
                     Grid.Column="1"
                     Width="200"
-                    VerticalAlignment=" "
+                    VerticalAlignment="Center"
                     Classes="Margin4"
                     ToolTip.Tip="{x:Static resx:ResUI.LvConvertTargetTip}" />
 

@@ -10,6 +10,7 @@
         public int sort { get; set; }
         public string delayVal { get; set; }
         public string speedVal { get; set; }
+        public string score { get; set; }
         public string todayUp { get; set; }
         public string todayDown { get; set; }
         public string totalUp { get; set; }

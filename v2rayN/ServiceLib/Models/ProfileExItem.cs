@@ -11,5 +11,7 @@ namespace ServiceLib.Models
         public int delay { get; set; }
         public decimal speed { get; set; }
         public int sort { get; set; }
+        
+        public int score { get; set; }
     }
 }

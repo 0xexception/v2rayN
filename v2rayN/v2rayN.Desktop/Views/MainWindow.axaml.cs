@@ -250,6 +250,12 @@ namespace v2rayN.Desktop.Views
                     DispatcherPriority.Default);
                     break;
 
+                case EViewAction.DispatcherRefreshSubscriptions:
+                    Dispatcher.UIThread.Post(() =>
+                        ViewModel?.RefreshSubscriptions(),
+                    DispatcherPriority.Default);
+                    break;
+
                 case EViewAction.DispatcherRefreshIcon:
                     Dispatcher.UIThread.Post(() =>
                     {

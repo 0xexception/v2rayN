@@ -946,6 +946,9 @@
   <data name="LvTestSpeed" xml:space="preserve">
     <value>Скорость (M/s)</value>
   </data>
+  <data name="LvScore" xml:space="preserve">
+    <value>Score</value>
+  </data>
   <data name="FailedToRunCore" xml:space="preserve">
     <value>Не удалось запустить ядро, посмотрите логи</value>
   </data>

@@ -5,6 +5,7 @@
         Tcping,
         Realping,
         Speedtest,
-        Mixedtest
+        Mixedtest,
+        Scoretest
     }
 }

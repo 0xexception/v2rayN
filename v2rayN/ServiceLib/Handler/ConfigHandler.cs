@@ -910,7 +910,8 @@ namespace ServiceLib.Handler
                                   streamSecurity = t.streamSecurity,
                                   delay = t33 == null ? 0 : t33.delay,
                                   speed = t33 == null ? 0 : t33.speed,
-                                  sort = t33 == null ? 0 : t33.sort
+                                  sort = t33 == null ? 0 : t33.sort,
+                                  score = t.score
                               }).ToList();
 
             Enum.TryParse(colName, true, out EServerColName name);
@@ -1274,6 +1275,16 @@ namespace ServiceLib.Handler
                 }
             }
 
+            // CHANGE 全局订阅模式下,去重并根据实际IP地理位置分发subid
+            if(lstAdd.Count > 0 && isSub && Utils.IsNullOrEmpty(subid))
+            {
+                lstAdd = lstAdd.Where(item => lstOriSub?.FirstOrDefault(t => CompareProfileItem(t, item, false)) == null).ToList();
+                foreach (var p in lstAdd)
+                {
+                    PooledHandler.Instance.DispatchSubid(p);
+                }
+            }
+            
             if (lstAdd.Count > 0)
             {
                 SQLiteHelper.Instance.InsertAll(lstAdd);
@@ -1423,6 +1434,26 @@ namespace ServiceLib.Handler
                 return -1;
             }
             List<ProfileItem>? lstOriSub = null;
+            // CHANGE -> 全局订阅模式：去掉 && !Utils.IsNullOrEmpty(subid)
+            // 目的是后续可增量更新,此时isSub=true,subid=null,后续根据实际IP地理位置分发subid
+            if (isSub && Utils.IsNullOrEmpty(subid))
+            {
+                var c = 0;
+                lstOriSub = LazyConfig.Instance.ProfileItems(null);
+                if (Utils.IsBase64String(strData))
+                {
+                    c = AddBatchServers(config, Utils.Base64Decode(strData), subid, isSub, lstOriSub);
+                }
+                if (c < 1)
+                {
+                    c = AddBatchServers(config, strData, subid, isSub, lstOriSub);
+                }
+                if (c < 1)
+                {
+                    c = AddBatchServers(config, Utils.Base64Decode(strData), subid, isSub, lstOriSub);
+                }
+                return c;
+            }
             if (isSub && !Utils.IsNullOrEmpty(subid))
             {
                 lstOriSub = LazyConfig.Instance.ProfileItems(subid);

@@ -159,6 +159,7 @@ namespace ServiceLib.ViewModels
             _updateView = updateView;
 
             MessageBus.Current.Listen<string>(Global.CommandRefreshProfiles).Subscribe(async x => await _updateView?.Invoke(EViewAction.DispatcherRefreshServersBiz, null));
+            MessageBus.Current.Listen<string>(Global.CommandRefreshSubscriptions).Subscribe(async x => await _updateView?.Invoke(EViewAction.DispatcherRefreshSubscriptions, null));
 
             SelectedRouting = new();
             SelectedServer = new();
@@ -365,6 +366,7 @@ namespace ServiceLib.ViewModels
             }
 
             TaskHandler.Instance.RegUpdateTask(_config, UpdateTaskHandler);
+            PooledHandler.Instance.RegUpdateTask(_config, UpdateTaskHandler);
             RefreshRoutingsMenu();
             //RefreshServers();
 
@@ -391,7 +393,7 @@ namespace ServiceLib.ViewModels
 
         private void UpdateTaskHandler(bool success, string msg)
         {
-            _noticeHandler?.SendMessage(msg);
+            _noticeHandler?.SendMessage(msg, true);
             if (success)
             {
                 var indexIdOld = _config.indexId;
@@ -510,7 +512,7 @@ namespace ServiceLib.ViewModels
             }
         }
 
-        private void RefreshSubscriptions()
+        public void RefreshSubscriptions()
         {
             Locator.Current.GetService<ProfilesViewModel>()?.RefreshSubscriptions();
         }
