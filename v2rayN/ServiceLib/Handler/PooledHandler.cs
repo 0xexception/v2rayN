@@ -1,4 +1,7 @@
 ﻿using System.Diagnostics;
+using System.Linq;
+using System.Net;
+using System.Threading;
 using ReactiveUI;
 using Splat;
 
@@ -11,6 +14,7 @@ namespace ServiceLib.Handler
         
         private Action<bool, string> _updateFunc;
         private Config _config;
+        private static Semaphore _semaphore = new Semaphore(1, 1);
 
         public PooledHandler()
         {
@@ -21,23 +25,35 @@ namespace ServiceLib.Handler
             _config = config;
             _updateFunc = update;
             Task.Run(UpdateTaskRunCrawler);
+            Task.Run(UpdateTaskRunScore);
         }
 
         private async Task UpdateTaskRunCrawler()
         {
             await Task.Delay(1000 * 5);
-            while (true)
+            while (true) 
             {
                 UpdateCrawlerAll();
-                await Task.Delay(1000 * 3600); // 每天采集一次 
+                await Task.Delay(1000 * 86400); // 每天采集一次 
+            }
+        }
+
+        private async Task UpdateTaskRunScore()
+        {
+            await Task.Delay(1000 * 10);
+            while (true)
+            {
+                UpdateScoreAll();
+                await Task.Delay(1000 * 3600); // 每小时计算一次 
             }
         }
         
         public void UpdateCrawlerAll()
         {
-            _updateFunc(false, "更新全部爬虫开始");
             Task.Run(async () =>
             {
+                _semaphore.WaitOne();
+                _updateFunc(false, "更新全部爬虫开始");
                 var directoryPath = Utils.GetScriptPath();
                 // 获取所有 .py 文件
                 string[] pythonFiles = Directory.GetFiles(directoryPath, "*.py");
@@ -56,6 +72,7 @@ namespace ServiceLib.Handler
                 }
                 MessageBus.Current.SendMessage("", Global.CommandRefreshSubscriptions);
                 _updateFunc(true, string.Format("更新全部爬虫({0})结束", pythonFiles.Length));
+                _semaphore.Release();
             });
         }
 
@@ -157,12 +174,93 @@ namespace ServiceLib.Handler
             _updateFunc(false, $"别名[{profileItem.remarks}],地址[{profileItem.address}], 订阅分组[{subItem.remarks}]");
         }
 
-        private void x()
+        public void UpdateScoreAll()
         {
-            var coreHandler = Locator.Current.GetService<CoreHandler>();
-            if (coreHandler != null) return;
-            var items = LazyConfig.Instance.ProfileItems(null);
-            SpeedtestHandler handler = new SpeedtestHandler(_config, coreHandler, items, actionType, UpdateSpeedtestHandler);
+            Task.Run(async () =>
+            {
+                _semaphore.WaitOne();
+                _updateFunc(false, "计算所有分数开始");
+                var coreHandler = Locator.Current.GetService<CoreHandler>();
+                if (coreHandler == null) return;
+                var items = LazyConfig.Instance.ProfileItems(null);
+                items = items.Where(item => item.port > 0 && item.configType != EConfigType.Custom).ToList<ProfileItem>();
+                
+                int pid = -1;
+                try
+                {
+                    string msg = string.Empty;
+
+                    pid = coreHandler.LoadCoreConfigSpeedtest(_selecteds);
+                    if (pid < 0)
+                    {
+                        UpdateFunc("", ResUI.FailedToRunCore)
+
+                        return Task.CompletedTask;
+                    }
+
+                    DownloadHandler downloadHandle = new DownloadHandler();
+
+                    List<Task> tasks = new();
+                    foreach (var it in items)
+                    {
+                        ScoreTestResult res = new() { IndexId = it.indexId, Delay = ResUI.Speedtesting, Score = ResUI.Speedtesting };
+                        MessageBus.Current.SendMessage(res, Global.CommandScoreTestResult);
+
+                        ProfileExHandler.Instance.SetTestDelay(it.indexId, "0");
+
+                        if (it.configType == EConfigType.Custom)
+                        {
+                            continue;
+                        }
+                        tasks.Add(Task.Run(async () =>
+                        {
+                            try
+                            {
+                                WebProxy webProxy = new(Global.Loopback, it.port);
+                                
+                                int responseTime = await downloadHandle.GetRealPingTime(_config.speedTestItem.speedPingTestUrl, webProxy, 10);
+                                ProfileExHandler.Instance.SetTestDelay(it.indexId, $"{responseTime}");
+                                ProfileExHandler.Instance.SetTestScore(it.indexId, 0);
+                                UpdateFunc(it.indexId, output);
+                                int.TryParse(output, out int delay);
+                                it.delay = delay;
+                            }
+                            catch (Exception ex)
+                            {
+                                Logging.SaveLog(ex.Message, ex);
+                            }
+                        }));
+                    }
+                    Task.WaitAll(tasks.ToArray());
+                }
+                catch (Exception ex)
+                {
+                    Logging.SaveLog(ex.Message, ex);
+                }
+                finally
+                {
+                    if (pid > 0)
+                    {
+                        coreHandler.CoreStopPid(pid);
+                    }
+                    ProfileExHandler.Instance.SaveTo();
+                }
+
+                _updateFunc(false, "计算所有分数完成");
+                _semaphore.Release();
+            });
+            
+                
         }
+    }
+
+    [Serializable]
+    public class ScoreTestResult
+    {
+        public string? IndexId { get; set; }
+
+        public string? Delay { get; set; }
+
+        public string? Score { get; set; }
     }
 }

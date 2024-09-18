@@ -502,6 +502,15 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 Score 的本地化字符串。
+        /// </summary>
+        public static string LvTestScore {
+            get {
+                return ResourceManager.GetString("LvTestScore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Speed(M/s) 的本地化字符串。
         /// </summary>
         public static string LvTestSpeed {

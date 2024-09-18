@@ -42,6 +42,8 @@ namespace v2rayN.Desktop.Views
             ViewModel = new ProfilesViewModel(UpdateViewHandler);
             Locator.CurrentMutable.RegisterLazySingleton(() => ViewModel, typeof(ProfilesViewModel));
 
+            MessageBus.Current.Listen<ScoreTestResult>(Global.CommandScoreTestResult).Subscribe(async x => await UpdateViewHandler(EViewAction.DispatcherScoreTestResult, x));
+
             this.WhenActivated(disposables =>
             {
                 this.OneWayBind(ViewModel, vm => vm.ProfileItems, v => v.lstProfiles.ItemsSource).DisposeWith(disposables);
@@ -150,6 +152,14 @@ namespace v2rayN.Desktop.Views
                     if (obj is null) return false;
                     Dispatcher.UIThread.Post(() =>
                         ViewModel?.SetSpeedTestResult((SpeedTestResult)obj),
+                    DispatcherPriority.Default);
+
+                    break;
+
+                case EViewAction.DispatcherScoreTestResult:
+                    if (obj is null) return false;
+                    Dispatcher.UIThread.Post(() =>
+                        ViewModel?.SetScoreTestResult((ScoreTestResult)obj),
                     DispatcherPriority.Default);
 
                     break;

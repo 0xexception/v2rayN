@@ -142,6 +142,28 @@ namespace ServiceLib.Handler
             IndexIdEnqueue(indexId);
         }
 
+        public void SetTestScore(string indexId, int score)
+        {
+            var profileEx = _lstProfileEx.FirstOrDefault(t => t.indexId == indexId);
+            if (profileEx == null)
+            {
+                AddProfileEx(indexId, ref profileEx);
+            }
+
+            profileEx.score = score;
+            IndexIdEnqueue(indexId);
+        }
+
+        public int? GetScore(string indexId)
+        {
+            var profileEx = _lstProfileEx.FirstOrDefault(t => t.indexId == indexId);
+            if (profileEx == null)
+            {
+                return null;
+            }
+            return profileEx.score;
+        }
+
         public void SetSort(string indexId, int sort)
         {
             var profileEx = _lstProfileEx.FirstOrDefault(t => t.indexId == indexId);

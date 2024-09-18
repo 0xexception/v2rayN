@@ -38,6 +38,7 @@
         DispatcherReload,
         DispatcherRefreshServersBiz,
         DispatcherRefreshSubscriptions,
+        DispatcherScoreTestResult,
         DispatcherRefreshIcon,
         DispatcherCheckUpdate,
         DispatcherCheckUpdateFinished,       

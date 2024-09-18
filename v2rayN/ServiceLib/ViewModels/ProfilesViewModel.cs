@@ -279,6 +279,29 @@ namespace ServiceLib.ViewModels
             }
         }
 
+        public void SetScoreTestResult(ScoreTestResult result)
+        {
+            if (Utils.IsNullOrEmpty(result.IndexId))
+            {
+                return;
+            }
+            var item = _profileItems.Where(it => it.indexId == result.IndexId).FirstOrDefault();
+            if (item != null)
+            {
+                if (!Utils.IsNullOrEmpty(result.Delay))
+                {
+                    int.TryParse(result.Delay, out int temp);
+                    item.delay = temp;
+                    item.delayVal = $"{result.Delay} {Global.DelayUnit}";
+                }
+                if (!Utils.IsNullOrEmpty(result.Score))
+                {
+                    item.score = result.Score;
+                }
+                _profileItems.Replace(item, JsonUtils.DeepCopy(item));
+            }
+        }
+
         public void UpdateStatistics(ServerSpeedItem update)
         {
             try

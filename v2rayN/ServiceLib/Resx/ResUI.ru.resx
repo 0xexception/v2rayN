@@ -946,7 +946,7 @@
   <data name="LvTestSpeed" xml:space="preserve">
     <value>Скорость (M/s)</value>
   </data>
-  <data name="LvScore" xml:space="preserve">
+  <data name="LvTestScore" xml:space="preserve">
     <value>Score</value>
   </data>
   <data name="FailedToRunCore" xml:space="preserve">

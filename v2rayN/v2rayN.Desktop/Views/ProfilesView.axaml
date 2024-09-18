@@ -193,7 +193,7 @@
                     <DataGridTextColumn
                         Width="100"
                         Binding="{Binding score}"
-                        Header="{x:Static resx:ResUI.LvScore}" />
+                        Header="{x:Static resx:ResUI.LvTestScore}" />
 
                     <DataGridTextColumn
                         Width="100"
