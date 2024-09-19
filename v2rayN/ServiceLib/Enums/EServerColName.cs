@@ -12,6 +12,7 @@
         subRemarks,
         delayVal,
         speedVal,
+        scoreVal,
 
         todayDown,
         todayUp,

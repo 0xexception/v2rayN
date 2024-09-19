@@ -78,6 +78,7 @@
         public const string CommandRefreshProfiles = "CommandRefreshProfiles";
         public const string CommandRefreshSubscriptions = "CommandRefreshSubscriptions";
         public const string CommandScoreTestResult = "CommandScoreTestResult";
+        public const string CommandSpeedTestResult = "CommandSpeedTestResult";
         public const string DelayUnit = "";
         public const string SpeedUnit = "";
         public const int MinFontSize = 10;
@@ -118,6 +119,7 @@
         };
 
         public static readonly List<string> SpeedPingTestUrls = new() {
+            @"https://www.google.com",
             @"https://www.google.com/generate_204",
             @"https://www.gstatic.com/generate_204",
             @"https://www.apple.com/library/test/success.html",

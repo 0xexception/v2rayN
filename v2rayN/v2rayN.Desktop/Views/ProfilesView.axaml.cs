@@ -8,6 +8,7 @@ using ReactiveUI;
 using Splat;
 using System.Reactive.Disposables;
 using v2rayN.Desktop.Common;
+using static ServiceLib.Handler.PooledHandler;
 
 namespace v2rayN.Desktop.Views
 {
@@ -43,6 +44,7 @@ namespace v2rayN.Desktop.Views
             Locator.CurrentMutable.RegisterLazySingleton(() => ViewModel, typeof(ProfilesViewModel));
 
             MessageBus.Current.Listen<ScoreTestResult>(Global.CommandScoreTestResult).Subscribe(async x => await UpdateViewHandler(EViewAction.DispatcherScoreTestResult, x));
+            MessageBus.Current.Listen<SpeedTestResult>(Global.CommandSpeedTestResult).Subscribe(async x => await UpdateViewHandler(EViewAction.DispatcherSpeedTest, x));
 
             this.WhenActivated(disposables =>
             {

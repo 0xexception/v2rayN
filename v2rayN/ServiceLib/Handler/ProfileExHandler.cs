@@ -154,12 +154,12 @@ namespace ServiceLib.Handler
             IndexIdEnqueue(indexId);
         }
 
-        public int? GetScore(string indexId)
+        public int GetScore(string indexId)
         {
             var profileEx = _lstProfileEx.FirstOrDefault(t => t.indexId == indexId);
             if (profileEx == null)
             {
-                return null;
+                return -1;
             }
             return profileEx.score;
         }

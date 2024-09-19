@@ -6,6 +6,7 @@ using Splat;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Text;
+using static ServiceLib.Handler.PooledHandler;
 
 namespace ServiceLib.ViewModels
 {
@@ -296,7 +297,8 @@ namespace ServiceLib.ViewModels
                 }
                 if (!Utils.IsNullOrEmpty(result.Score))
                 {
-                    item.score = result.Score;
+                    int.TryParse(result.Score, out int temp);
+                    item.score = temp;
                 }
                 _profileItems.Replace(item, JsonUtils.DeepCopy(item));
             }

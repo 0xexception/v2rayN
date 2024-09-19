@@ -192,7 +192,7 @@ namespace ServiceLib.Handler.CoreConfig
             }
         }
 
-        public int GenerateClientSpeedtestConfig(List<ServerTestItem> sele7 cteds, out V2rayConfig? v2rayConfig, out string msg)
+        public int GenerateClientSpeedtestConfig(List<ServerTestItem> selecteds, out V2rayConfig? v2rayConfig, out string msg)
         {
             v2rayConfig = null;
             try

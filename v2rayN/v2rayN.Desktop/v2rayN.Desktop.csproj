@@ -9,7 +9,17 @@
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 		<FileVersion>6.55</FileVersion>
     </PropertyGroup>
+    
+    <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+        <DefineConstants>DEBUG;TRACE</DefineConstants>
+        <PythonPath>C:\path\to\your\venv_debug\Scripts\python.exe</PythonPath>
+    </PropertyGroup>
 
+    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+        <DefineConstants>RELEASE;TRACE</DefineConstants>
+        <PythonPath>C:\path\to\your\venv_release\Scripts\python.exe</PythonPath>
+    </PropertyGroup>
+    
     <ItemGroup>
         <AvaloniaResource Include="Assets\**" />
     </ItemGroup>

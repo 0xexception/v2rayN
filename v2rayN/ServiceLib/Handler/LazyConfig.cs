@@ -152,7 +152,7 @@ namespace ServiceLib.Handler
                             delay = t33 == null ? 0 : t33.delay,
                             delayVal = t33?.delay != 0 ? $"{t33?.delay} {Global.DelayUnit}" : string.Empty,
                             speedVal = t33?.speed != 0 ? $"{t33?.speed} {Global.SpeedUnit}" : string.Empty,
-                            score = t.score,
+                            score = t33.score,
                             todayDown = t22 == null ? "" : Utils.HumanFy(t22.todayDown),
                             todayUp = t22 == null ? "" : Utils.HumanFy(t22.todayUp),
                             totalDown = t22 == null ? "" : Utils.HumanFy(t22.totalDown),

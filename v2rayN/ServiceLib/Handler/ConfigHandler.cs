@@ -911,7 +911,7 @@ namespace ServiceLib.Handler
                                   delay = t33 == null ? 0 : t33.delay,
                                   speed = t33 == null ? 0 : t33.speed,
                                   sort = t33 == null ? 0 : t33.sort,
-                                  score = t.score
+                                  score = t33.score
                               }).ToList();
 
             Enum.TryParse(colName, true, out EServerColName name);
@@ -933,6 +933,10 @@ namespace ServiceLib.Handler
 
                 case EServerColName.speedVal:
                     propertyName = "speed";
+                    break;
+
+                case EServerColName.scoreVal:
+                    propertyName = "score";
                     break;
 
                 case EServerColName.subRemarks:
