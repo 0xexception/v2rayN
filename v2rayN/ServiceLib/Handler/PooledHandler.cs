@@ -37,7 +37,7 @@ namespace ServiceLib.Handler
             while (true)
             {
                 UpdateCrawlerAll();
-                await Task.Delay(1000 * 86400); // 每天采集一次 
+                await Task.Delay(1000 * 86400); // 每天采集一次
             }
         }
 
@@ -56,7 +56,7 @@ namespace ServiceLib.Handler
             await Task.Delay(1000 * 15);
             while (true)
             {
-                UpdatePoolingNow();
+                await UpdatePoolingNow();
                 await Task.Delay(1000 * 60); // 每分钟筛选一次 
             }
         }
@@ -117,7 +117,8 @@ namespace ServiceLib.Handler
             using (Process process = Process.Start(psi))
             {
                 // 向命令行输入启动命令
-                process.StandardInput.WriteLine($"python \"{filePath}\"");
+                var path = Path.Combine("venv", Utils.IsWindows() ? "Scripts" : "bin", "python");
+                process.StandardInput.WriteLine($"{path} \"{filePath}\"");
                 process.StandardInput.WriteLine("exit"); // 退出命令行
                 // 可选：读取输出
                 string output = process.StandardOutput.ReadToEnd();
@@ -201,7 +202,8 @@ namespace ServiceLib.Handler
             }
 
             profileItem.subid = subItem.id;
-            _updateFunc(false, $"Remarks:[{profileItem.remarks}],Address:[{profileItem.address}], Subscription[{subItem.remarks}]");
+            _updateFunc(false,
+                $"Remarks:[{profileItem.remarks}],Address:[{profileItem.address}], Subscription[{subItem.remarks}]");
         }
 
         public void UpdateScoreAll()
@@ -280,7 +282,7 @@ namespace ServiceLib.Handler
 
                                 // 计算分数
                                 int score = ProfileExHandler.Instance.GetScore(it.indexId);
-                                score = responseTime > 0 ? score + 1 : score - 1;
+                                score = Math.Min(responseTime > 0 ? score + 1 : score - 1, 100);
 
                                 ProfileExHandler.Instance.SetTestDelay(it.indexId, responseTime.ToString());
                                 ProfileExHandler.Instance.SetTestScore(it.indexId, score);
@@ -301,7 +303,8 @@ namespace ServiceLib.Handler
 
                     Task.WaitAll(tasks.ToArray());
                     // 自动删除分数<0的节点
-                    List<ProfileExItem> waitDelExs = ProfileExHandler.Instance.ProfileExs.Where(p => p.score < 0).ToList();
+                    List<ProfileExItem> waitDelExs =
+                        ProfileExHandler.Instance.ProfileExs.Where(p => p.score < 0).ToList();
                     if (waitDelExs.Count > 0)
                     {
                         List<ProfileItem> waitDels = new List<ProfileItem>();
@@ -319,7 +322,6 @@ namespace ServiceLib.Handler
                             ConfigHandler.RemoveServer(_config, waitDels);
                         }
                     }
-                    
                 }
                 catch (Exception ex)
                 {
@@ -331,7 +333,7 @@ namespace ServiceLib.Handler
                     {
                         coreHandler.CoreStopPid(pid);
                     }
-                    
+
                     if (ConfigHandler.SortServers(_config, null, "scoreVal", false) == 0)
                     {
                         MessageBus.Current.SendMessage("", Global.CommandRefreshProfiles);
@@ -344,123 +346,126 @@ namespace ServiceLib.Handler
             });
         }
 
-        public void UpdatePoolingNow()
+        public async Task UpdatePoolingNow()
         {
-            Task.Run(async () =>
+            _semaphore.WaitOne();
+            _updateFunc(false, "Start filtering pooled nodes.");
+            int pid = -1;
+            CoreHandler? coreHandler = null;
+            try
             {
-                _semaphore.WaitOne();
-                _updateFunc(false, "Start filtering pooled nodes.");
-                int pid = -1;
-                CoreHandler? coreHandler = null;
-                try
+                ConcurrentBag<ProfileExItem> profileExs = ProfileExHandler.Instance.ProfileExs;
+                if (profileExs == null || profileExs.Count == 0) return;
+                List<ProfileExItem> profileExItems = profileExs.Where(p => p.delay > -1)
+                    .OrderByDescending(p => p.score)
+                    .ThenBy(p => p.delay)
+                    .Take(10)
+                    .ToList();
+                List<ServerTestItem> _selecteds = new List<ServerTestItem>();
+                foreach (var profileExItem in profileExItems)
                 {
-                    ConcurrentBag<ProfileExItem> profileExs = ProfileExHandler.Instance.ProfileExs;
-                    if(profileExs == null || profileExs.Count == 0) return;
-                    List<ProfileExItem> profileExItems = profileExs.Where(p=> p.delay > -1)
-                        .OrderByDescending(p => p.score)
-                        .ThenBy(p =>p.delay)
-                        .Take(10)
-                        .ToList();
-                    List<ServerTestItem> _selecteds = new List<ServerTestItem>();
-                    foreach (var profileExItem in profileExItems)
+                    var it = LazyConfig.Instance.GetProfileItem(profileExItem.indexId);
+
+                    if (it.configType == EConfigType.Custom)
                     {
-                        var it = LazyConfig.Instance.GetProfileItem(profileExItem.indexId);
-
-                        if (it.configType == EConfigType.Custom)
-                        {
-                            continue;
-                        }
-
-                        if (it.port <= 0)
-                        {
-                            continue;
-                        }
-
-                        _selecteds.Add(new ServerTestItem()
-                        {
-                            indexId = it.indexId,
-                            address = it.address,
-                            port = it.port,
-                            configType = it.configType
-                        });
+                        continue;
                     }
-                    // 前十个节点测速，取最快的
-                    coreHandler = Locator.Current.GetService<CoreHandler>();
-                    if (coreHandler == null) return;
-                    pid = coreHandler.LoadCoreConfigSpeedtest(_selecteds);
-                    if (pid < 0)
+
+                    if (it.port <= 0)
                     {
-                        _updateFunc(false, ResUI.FailedToRunCore);
-                        return;
+                        continue;
                     }
-                    string url = _config.speedTestItem.speedTestUrl;
-                    var timeout = _config.speedTestItem.speedTestTimeout;
 
-                    DownloadHandler downloadHandle = new();
-
-                    foreach (var it in _selecteds)
+                    _selecteds.Add(new ServerTestItem()
                     {
-                        if (!it.allowTest)
+                        indexId = it.indexId,
+                        address = it.address,
+                        port = it.port,
+                        configType = it.configType
+                    });
+                }
+
+                // 前十个节点测速，取最快的
+                coreHandler = Locator.Current.GetService<CoreHandler>();
+                if (coreHandler == null) return;
+                pid = coreHandler.LoadCoreConfigSpeedtest(_selecteds);
+                if (pid < 0)
+                {
+                    _updateFunc(false, ResUI.FailedToRunCore);
+                    return;
+                }
+
+                string url = _config.speedTestItem.speedTestUrl;
+                var timeout = _config.speedTestItem.speedTestTimeout;
+
+                DownloadHandler downloadHandle = new();
+
+                foreach (var it in _selecteds)
+                {
+                    if (!it.allowTest)
+                    {
+                        continue;
+                    }
+
+                    if (it.configType == EConfigType.Custom)
+                    {
+                        continue;
+                    }
+
+                    ProfileExHandler.Instance.SetTestSpeed(it.indexId, "-1");
+
+                    SpeedTestResult res = new()
+                        { IndexId = it.indexId, Speed = ResUI.Speedtesting };
+                    MessageBus.Current.SendMessage(res, Global.CommandSpeedTestResult);
+
+                    var item = LazyConfig.Instance.GetProfileItem(it.indexId);
+                    if (item is null) continue;
+
+                    WebProxy webProxy = new(Global.Loopback, it.port);
+
+                    await downloadHandle.DownloadDataAsync(url, webProxy, timeout, (bool success, string msg) =>
+                    {
+                        decimal.TryParse(msg, out decimal dec);
+                        if (dec > 0)
                         {
-                            continue;
+                            ProfileExHandler.Instance.SetTestSpeed(it.indexId, msg);
                         }
-                        if (it.configType == EConfigType.Custom)
-                        {
-                            continue;
-                        }
-                        ProfileExHandler.Instance.SetTestSpeed(it.indexId, "-1");
-                        
+
                         SpeedTestResult res = new()
-                            { IndexId = it.indexId, Speed = ResUI.Speedtesting };
+                            { IndexId = it.indexId, Speed = msg };
                         MessageBus.Current.SendMessage(res, Global.CommandSpeedTestResult);
-
-                        var item = LazyConfig.Instance.GetProfileItem(it.indexId);
-                        if (item is null) continue;
-
-                        WebProxy webProxy = new(Global.Loopback, it.port);
-
-                        await downloadHandle.DownloadDataAsync(url, webProxy, timeout, (bool success, string msg) =>
-                        {
-                            decimal.TryParse(msg, out decimal dec);
-                            if (dec > 0)
-                            {
-                                ProfileExHandler.Instance.SetTestSpeed(it.indexId, msg);
-                            }
-                            SpeedTestResult res = new()
-                                { IndexId = it.indexId, Speed = msg };
-                            MessageBus.Current.SendMessage(res, Global.CommandSpeedTestResult);
-                        });
-                    }
-
-                    if (pid > 0)
-                    {
-                        coreHandler.CoreStopPid(pid);
-                    }
-                    ProfileExHandler.Instance.SaveTo();
-                    
-                    // 计算并切换最快节点
-                    ProfileExItem? maxItem = profileExItems.MaxBy(p => p.speed);
-                    if (maxItem == null || maxItem.indexId == _config.indexId)
-                    {
-                        return;
-                    }
-                    
-                    if (ConfigHandler.SetDefaultServerIndex(_config, maxItem.indexId) == 0)
-                    {
-                        /*MessageBus.Current.SendMessage("", Global.CommandRefreshProfiles);
-                        Locator.Current.GetService<MainWindowViewModel>()?.Reload();*/
-                    }
+                    });
                 }
-                catch (Exception ex)
+
+                if (pid > 0)
                 {
-                    Logging.SaveLog(ex.Message, ex);
+                    coreHandler.CoreStopPid(pid);
                 }
-                finally
+
+                ProfileExHandler.Instance.SaveTo();
+
+                // 计算并切换最快节点
+                ProfileExItem? maxItem = profileExItems.MaxBy(p => p.speed);
+                if (maxItem == null || maxItem.indexId == _config.indexId)
                 {
-                    _updateFunc(true, "End filtering pooled nodes.");
-                    _semaphore.Release();
+                    return;
                 }
-            });
+
+                if (ConfigHandler.SetDefaultServerIndex(_config, maxItem.indexId) == 0)
+                {
+                    /*MessageBus.Current.SendMessage("", Global.CommandRefreshProfiles);
+                    Locator.Current.GetService<MainWindowViewModel>()?.Reload();*/
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.SaveLog(ex.Message, ex);
+            }
+            finally
+            {
+                _updateFunc(true, "End filtering pooled nodes.");
+                _semaphore.Release();
+            }
         }
 
         [Serializable]
