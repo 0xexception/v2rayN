@@ -23,7 +23,7 @@ namespace ServiceLib.Handler
         {
             //载入配置文件
             var result = Utils.LoadResource(Utils.GetConfigPath(configRes));
-            if (!Utils.IsNullOrEmpty(result))
+            if (Utils.IsNotEmpty(result))
             {
                 //转成Json
                 config = JsonUtils.Deserialize<Config>(result);
@@ -124,20 +124,16 @@ namespace ServiceLib.Handler
                     mtu = 9000,
                 };
             }
-            if (config.guiItem == null)
+            config.guiItem ??= new()
             {
-                config.guiItem = new()
-                {
-                    enableStatistics = false,
-                };
-            }
-            if (config.uiItem == null)
+                enableStatistics = false,
+            };
+            config.msgUIItem ??= new();
+
+            config.uiItem ??= new UIItem()
             {
-                config.uiItem = new UIItem()
-                {
-                    enableAutoAdjustMainLvColWidth = true
-                };
-            }
+                enableAutoAdjustMainLvColWidth = true
+            };
             if (config.uiItem.mainColumnItem == null)
             {
                 config.uiItem.mainColumnItem = new();
@@ -174,11 +170,11 @@ namespace ServiceLib.Handler
             }
 
             config.mux4RayItem ??= new()
-                {
-                    concurrency = 8,
-                    xudpConcurrency = 16,
-                    xudpProxyUDP443 = "reject"
-                };
+            {
+                concurrency = 8,
+                xudpConcurrency = 16,
+                xudpProxyUDP443 = "reject"
+            };
 
             if (config.mux4SboxItem == null)
             {
@@ -207,6 +203,8 @@ namespace ServiceLib.Handler
                     systemProxyAdvancedProtocol = config.systemProxyAdvancedProtocol,
                 };
             }
+
+            config.webDavItem ??= new();
 
             return 0;
         }
@@ -910,8 +908,7 @@ namespace ServiceLib.Handler
                                   streamSecurity = t.streamSecurity,
                                   delay = t33 == null ? 0 : t33.delay,
                                   speed = t33 == null ? 0 : t33.speed,
-                                  sort = t33 == null ? 0 : t33.sort,
-                                  score = t33.score
+                                  sort = t33 == null ? 0 : t33.sort
                               }).ToList();
 
             Enum.TryParse(colName, true, out EServerColName name);
@@ -933,10 +930,6 @@ namespace ServiceLib.Handler
 
                 case EServerColName.speedVal:
                     propertyName = "speed";
-                    break;
-
-                case EServerColName.scoreVal:
-                    propertyName = "score";
                     break;
 
                 case EServerColName.subRemarks:
@@ -1014,7 +1007,7 @@ namespace ServiceLib.Handler
             {
                 return -1;
             }
-            if (!Utils.IsNullOrEmpty(profileItem.security) && profileItem.security != Global.None)
+            if (Utils.IsNotEmpty(profileItem.security) && profileItem.security != Global.None)
             {
                 profileItem.security = Global.None;
             }
@@ -1052,7 +1045,7 @@ namespace ServiceLib.Handler
         {
             profileItem.configVersion = 2;
 
-            if (!Utils.IsNullOrEmpty(profileItem.streamSecurity))
+            if (Utils.IsNotEmpty(profileItem.streamSecurity))
             {
                 if (profileItem.streamSecurity != Global.StreamSecurity
                      && profileItem.streamSecurity != Global.StreamSecurityReality)
@@ -1072,7 +1065,7 @@ namespace ServiceLib.Handler
                 }
             }
 
-            if (!Utils.IsNullOrEmpty(profileItem.network) && !Global.Networks.Contains(profileItem.network))
+            if (Utils.IsNotEmpty(profileItem.network) && !Global.Networks.Contains(profileItem.network))
             {
                 profileItem.network = Global.DefaultNetwork;
             }
@@ -1193,7 +1186,7 @@ namespace ServiceLib.Handler
 
             string subFilter = string.Empty;
             //remove sub items
-            if (isSub && !Utils.IsNullOrEmpty(subid))
+            if (isSub && Utils.IsNotEmpty(subid))
             {
                 RemoveServerViaSubid(config, subid, isSub);
                 subFilter = LazyConfig.Instance.GetSubItem(subid)?.filter ?? "";
@@ -1226,7 +1219,7 @@ namespace ServiceLib.Handler
                 }
 
                 //exist sub items
-                if (isSub && !Utils.IsNullOrEmpty(subid))
+                if (isSub && Utils.IsNotEmpty(subid))
                 {
                     var existItem = lstOriSub?.FirstOrDefault(t => t.isSub == isSub
                                                 && config.uiItem.enableUpdateSubOnlyRemarksExist ? t.remarks == profileItem.remarks : CompareProfileItem(t, profileItem, true));
@@ -1248,7 +1241,7 @@ namespace ServiceLib.Handler
                         }
                     }
                     //filter
-                    if (!Utils.IsNullOrEmpty(subFilter))
+                    if (Utils.IsNotEmpty(subFilter))
                     {
                         if (!Regex.IsMatch(profileItem.remarks, subFilter))
                         {
@@ -1279,16 +1272,6 @@ namespace ServiceLib.Handler
                 }
             }
 
-            // CHANGE 全局订阅模式下,去重并根据实际IP地理位置分发subid
-            if(lstAdd.Count > 0 && isSub && Utils.IsNullOrEmpty(subid))
-            {
-                lstAdd = lstAdd.Where(item => lstOriSub?.FirstOrDefault(t => CompareProfileItem(t, item, false)) == null).ToList();
-                foreach (var p in lstAdd)
-                {
-                    PooledHandler.Instance.DispatchSubid(p);
-                }
-            }
-            
             if (lstAdd.Count > 0)
             {
                 SQLiteHelper.Instance.InsertAll(lstAdd);
@@ -1322,7 +1305,7 @@ namespace ServiceLib.Handler
             }
             if (lstProfiles != null && lstProfiles.Count > 0)
             {
-                if (isSub && !Utils.IsNullOrEmpty(subid))
+                if (isSub && Utils.IsNotEmpty(subid))
                 {
                     RemoveServerViaSubid(config, subid, isSub);
                 }
@@ -1378,7 +1361,7 @@ namespace ServiceLib.Handler
                 return -1;
             }
 
-            if (isSub && !Utils.IsNullOrEmpty(subid))
+            if (isSub && Utils.IsNotEmpty(subid))
             {
                 RemoveServerViaSubid(config, subid, isSub);
             }
@@ -1406,7 +1389,7 @@ namespace ServiceLib.Handler
                 return -1;
             }
 
-            if (isSub && !Utils.IsNullOrEmpty(subid))
+            if (isSub && Utils.IsNotEmpty(subid))
             {
                 RemoveServerViaSubid(config, subid, isSub);
             }
@@ -1458,7 +1441,7 @@ namespace ServiceLib.Handler
                 }
                 return c;
             }
-            if (isSub && !Utils.IsNullOrEmpty(subid))
+            if (isSub && Utils.IsNotEmpty(subid))
             {
                 lstOriSub = LazyConfig.Instance.ProfileItems(subid);
             }
@@ -1545,6 +1528,7 @@ namespace ServiceLib.Handler
                 item.userAgent = subItem.userAgent;
                 item.sort = subItem.sort;
                 item.filter = subItem.filter;
+                item.updateTime = subItem.updateTime;
                 item.convertTarget = subItem.convertTarget;
                 item.prevProfile = subItem.prevProfile;
                 item.nextProfile = subItem.nextProfile;

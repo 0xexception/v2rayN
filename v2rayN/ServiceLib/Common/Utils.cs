@@ -158,10 +158,11 @@ namespace ServiceLib.Common
         /// </summary>
         /// <param name="plainText"></param>
         /// <returns></returns>
-        public static string Base64Decode(string plainText)
+        public static string Base64Decode(string? plainText)
         {
             try
             {
+                if (plainText.IsNullOrEmpty()) return "";
                 plainText = plainText.Trim()
                   .Replace(Environment.NewLine, "")
                   .Replace("\n", "")
@@ -365,7 +366,7 @@ namespace ServiceLib.Common
             }
         }
 
-        public static bool IsBase64String(string plainText)
+        public static bool IsBase64String(string? plainText)
         {
             if (plainText.IsNullOrEmpty()) return false;
             var buffer = new Span<byte>(new byte[plainText.Length]);
@@ -415,6 +416,11 @@ namespace ServiceLib.Common
                 return true;
             }
             return false;
+        }
+
+        public static bool IsNotEmpty(string? text)
+        {
+            return !string.IsNullOrEmpty(text);
         }
 
         /// <summary>
@@ -567,13 +573,12 @@ namespace ServiceLib.Common
         {
             try
             {
-                string location = GetExePath();
                 if (blFull)
                 {
                     return string.Format("{0} - V{1} - {2}",
                             Global.AppName,
                             GetVersionInfo(),
-                            File.GetLastWriteTime(location).ToString("yyyy/MM/dd"));
+                            File.GetLastWriteTime(GetExePath()).ToString("yyyy/MM/dd"));
                 }
                 else
                 {
@@ -593,8 +598,7 @@ namespace ServiceLib.Common
         {
             try
             {
-                string location = GetExePath();
-                return FileVersionInfo.GetVersionInfo(location)?.FileVersion ?? "0.0";
+                return Assembly.GetExecutingAssembly()?.GetName()?.Version?.ToString(3) ?? "0.0";
             }
             catch (Exception ex)
             {
@@ -817,7 +821,7 @@ namespace ServiceLib.Common
             }
             if (coreType != null)
             {
-                _tempPath = Path.Combine(_tempPath, coreType.ToString()!);
+                _tempPath = Path.Combine(_tempPath, coreType.ToString());
                 if (!Directory.Exists(_tempPath))
                 {
                     Directory.CreateDirectory(_tempPath);

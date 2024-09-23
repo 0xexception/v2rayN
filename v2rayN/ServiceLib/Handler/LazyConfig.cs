@@ -1,6 +1,4 @@
-﻿using System.Runtime.InteropServices;
-
-namespace ServiceLib.Handler
+﻿namespace ServiceLib.Handler
 {
     public sealed class LazyConfig
     {
@@ -106,11 +104,11 @@ namespace ServiceLib.Handler
                         from ProfileItem a
                         left join SubItem b on a.subid = b.id
                         where 1=1 ";
-            if (!Utils.IsNullOrEmpty(subid))
+            if (Utils.IsNotEmpty(subid))
             {
                 sql += $" and a.subid = '{subid}'";
             }
-            if (!Utils.IsNullOrEmpty(filter))
+            if (Utils.IsNotEmpty(filter))
             {
                 if (filter.Contains('\''))
                 {
@@ -171,7 +169,7 @@ namespace ServiceLib.Handler
             return SQLiteHelper.Instance.Table<ProfileItem>().FirstOrDefault(it => it.indexId == indexId);
         }
 
-        public ProfileItem? GetProfileItemViaRemarks(string remarks)
+        public ProfileItem? GetProfileItemViaRemarks(string? remarks)
         {
             if (Utils.IsNullOrEmpty(remarks))
             {

@@ -41,6 +41,7 @@
         DispatcherScoreTestResult,
         DispatcherRefreshIcon,
         DispatcherCheckUpdate,
-        DispatcherCheckUpdateFinished,       
+        DispatcherCheckUpdateFinished,
+        DispatcherShowMsg,
     }
 }

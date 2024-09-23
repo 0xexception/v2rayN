@@ -22,32 +22,25 @@
             Orientation="Horizontal">
 
             <TextBlock
-                Grid.Row="9"
-                Grid.Column="0"
                 Margin="{StaticResource SettingItemMargin}"
                 VerticalAlignment="Center"
                 Style="{StaticResource ToolbarTextBlock}"
                 Text="{x:Static resx:ResUI.TbSettingsEnableCheckPreReleaseUpdate}" />
             <ToggleButton
                 x:Name="togEnableCheckPreReleaseUpdate"
-                Grid.Row="9"
-                Grid.Column="1"
                 Margin="{StaticResource SettingItemMargin}"
                 HorizontalAlignment="Left" />
 
             <Button
                 x:Name="btnCheckUpdate"
-                Grid.Row="2"
                 Width="100"
                 Margin="8"
-                Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
                 Content="{x:Static resx:ResUI.menuCheckUpdate}"
                 IsCancel="True"
                 IsDefault="True"
                 Style="{StaticResource MaterialDesignFlatButton}" />
 
             <Button
-                Grid.Row="2"
                 Width="100"
                 Margin="8"
                 HorizontalAlignment="Right"
@@ -56,7 +49,6 @@
                 IsCancel="True"
                 IsDefault="True"
                 Style="{StaticResource MaterialDesignFlatButton}" />
-
         </StackPanel>
 
         <StackPanel>
@@ -106,7 +98,6 @@
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
-
         </StackPanel>
     </DockPanel>
 </reactiveui:ReactiveUserControl>

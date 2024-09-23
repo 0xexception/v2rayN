@@ -38,6 +38,7 @@
         public GrpcItem grpcItem { get; set; }
         public RoutingBasicItem routingBasicItem { get; set; }
         public GUIItem guiItem { get; set; }
+        public MsgUIItem msgUIItem { get; set; }
         public UIItem uiItem { get; set; }
         public ConstItem constItem { get; set; }
         public SpeedTestItem speedTestItem { get; set; }
@@ -46,6 +47,7 @@
         public HysteriaItem hysteriaItem { get; set; }
         public ClashUIItem clashUIItem { get; set; }
         public SystemProxyItem systemProxyItem { get; set; }
+        public WebDavItem webDavItem { get; set; }
         public List<InItem> inbound { get; set; }
         public List<KeyEventItem> globalHotkeys { get; set; }
         public List<CoreTypeItem> coreTypeItem { get; set; }

@@ -18,7 +18,7 @@ namespace ServiceLib.Common
             Uri uri = new(url);
             //Authorization Header
             var headers = new WebHeaderCollection();
-            if (!Utils.IsNullOrEmpty(uri.UserInfo))
+            if (Utils.IsNotEmpty(uri.UserInfo))
             {
                 headers.Add(HttpRequestHeader.Authorization, "Basic " + Utils.Base64Encode(uri.UserInfo));
             }
@@ -176,7 +176,7 @@ namespace ServiceLib.Common
             };
 
             using var cts = new CancellationTokenSource();
-            await downloader.DownloadFileTaskAsync(url, fileName, cts.Token).WaitAsync(TimeSpan.FromSeconds(timeout), cts.Token);
+            await downloader.DownloadFileTaskAsync(url, fileName, cts.Token);
 
             downloadOpt = null;
         }

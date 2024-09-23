@@ -108,6 +108,13 @@
     }
 
     [Serializable]
+    public class MsgUIItem
+    {
+        public string? mainMsgFilter { get; set; }
+        public bool? autoRefresh { get; set; }
+    }
+
+    [Serializable]
     public class UIItem
     {
         public bool enableAutoAdjustMainLvColWidth { get; set; }
@@ -126,7 +133,6 @@
         public bool enableDragDropSort { get; set; }
         public bool doubleClick2Activate { get; set; }
         public bool autoHideStartup { get; set; }
-        public string mainMsgFilter { get; set; }
         public List<ColumnItem> mainColumnItem { get; set; }
         public bool showInTaskbar { get; set; }
     }
@@ -241,5 +247,14 @@
         public string systemProxyExceptions { get; set; }
         public bool notProxyLocalAddress { get; set; } = true;
         public string systemProxyAdvancedProtocol { get; set; }
+    }
+
+    [Serializable]
+    public class WebDavItem
+    {
+        public string? url { get; set; }
+        public string? userName { get; set; }
+        public string? password { get; set; }
+        public string? dirName { get; set; }
     }
 }

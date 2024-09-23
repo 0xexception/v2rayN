@@ -248,10 +248,10 @@ namespace ServiceLib.Handler.CoreConfig
                     {
                         continue;
                     }
+                    var item = LazyConfig.Instance.GetProfileItem(it.indexId);
                     if (it.configType is EConfigType.VMess or EConfigType.VLESS)
                     {
-                        var item2 = LazyConfig.Instance.GetProfileItem(it.indexId);
-                        if (item2 is null || Utils.IsNullOrEmpty(item2.id) || !Utils.IsGuidByParse(item2.id))
+                        if (item is null || Utils.IsNullOrEmpty(item.id) || !Utils.IsGuidByParse(item.id))
                         {
                             continue;
                         }
@@ -294,7 +294,6 @@ namespace ServiceLib.Handler.CoreConfig
                     v2rayConfig.inbounds.Add(inbound);
 
                     //outbound
-                    var item = LazyConfig.Instance.GetProfileItem(it.indexId);
                     if (item is null)
                     {
                         continue;
@@ -306,6 +305,12 @@ namespace ServiceLib.Handler.CoreConfig
                     }
                     if (item.configType == EConfigType.VLESS
                      && !Global.Flows.Contains(item.flow))
+                    {
+                        continue;
+                    }
+                    if ((it.configType is EConfigType.VLESS or EConfigType.Trojan)
+                        && item.streamSecurity == Global.StreamSecurityReality
+                        && item.publicKey.IsNullOrEmpty())
                     {
                         continue;
                     }
@@ -392,7 +397,7 @@ namespace ServiceLib.Handler.CoreConfig
                         v2rayConfig.inbounds.Add(inbound4);
 
                         //auth
-                        if (!Utils.IsNullOrEmpty(_config.inbound[0].user) && !Utils.IsNullOrEmpty(_config.inbound[0].pass))
+                        if (Utils.IsNotEmpty(_config.inbound[0].user) && Utils.IsNotEmpty(_config.inbound[0].pass))
                         {
                             inbound3.settings.auth = "password";
                             inbound3.settings.accounts = new List<AccountsItem4Ray> { new AccountsItem4Ray() { user = _config.inbound[0].user, pass = _config.inbound[0].pass } };
@@ -453,7 +458,7 @@ namespace ServiceLib.Handler.CoreConfig
                         var routing = ConfigHandler.GetDefaultRouting(_config);
                         if (routing != null)
                         {
-                            if (!Utils.IsNullOrEmpty(routing.domainStrategy))
+                            if (Utils.IsNotEmpty(routing.domainStrategy))
                             {
                                 v2rayConfig.routing.domainStrategy = routing.domainStrategy;
                             }
@@ -550,7 +555,7 @@ namespace ServiceLib.Handler.CoreConfig
                 }
                 if (!hasDomainIp)
                 {
-                    if (!Utils.IsNullOrEmpty(rule.port)
+                    if (Utils.IsNotEmpty(rule.port)
                         || rule.protocol?.Count > 0
                         || rule.inboundTag?.Count > 0
                         )
@@ -660,8 +665,8 @@ namespace ServiceLib.Handler.CoreConfig
                             serversItem.method = null;
                             serversItem.password = null;
 
-                            if (!Utils.IsNullOrEmpty(node.security)
-                                && !Utils.IsNullOrEmpty(node.id))
+                            if (Utils.IsNotEmpty(node.security)
+                                && Utils.IsNotEmpty(node.id))
                             {
                                 SocksUsersItem4Ray socksUsersItem = new()
                                 {
@@ -712,7 +717,7 @@ namespace ServiceLib.Handler.CoreConfig
                             if (node.streamSecurity == Global.StreamSecurityReality
                                 || node.streamSecurity == Global.StreamSecurity)
                             {
-                                if (!Utils.IsNullOrEmpty(node.flow))
+                                if (Utils.IsNotEmpty(node.flow))
                                 {
                                     usersItem.flow = node.flow;
 
@@ -818,11 +823,11 @@ namespace ServiceLib.Handler.CoreConfig
                         alpn = node.GetAlpn(),
                         fingerprint = node.fingerprint.IsNullOrEmpty() ? _config.coreBasicItem.defFingerprint : node.fingerprint
                     };
-                    if (!Utils.IsNullOrEmpty(sni))
+                    if (Utils.IsNotEmpty(sni))
                     {
                         tlsSettings.serverName = sni;
                     }
-                    else if (!Utils.IsNullOrEmpty(host))
+                    else if (Utils.IsNotEmpty(host))
                     {
                         tlsSettings.serverName = Utils.String2List(host)[0];
                     }
@@ -867,7 +872,7 @@ namespace ServiceLib.Handler.CoreConfig
                         {
                             type = node.headerType
                         };
-                        if (!Utils.IsNullOrEmpty(node.path))
+                        if (Utils.IsNotEmpty(node.path))
                         {
                             kcpSettings.seed = node.path;
                         }
@@ -878,15 +883,15 @@ namespace ServiceLib.Handler.CoreConfig
                         WsSettings4Ray wsSettings = new();
                         wsSettings.headers = new Headers4Ray();
                         string path = node.path;
-                        if (!Utils.IsNullOrEmpty(host))
+                        if (Utils.IsNotEmpty(host))
                         {
                             wsSettings.headers.Host = host;
                         }
-                        if (!Utils.IsNullOrEmpty(path))
+                        if (Utils.IsNotEmpty(path))
                         {
                             wsSettings.path = path;
                         }
-                        if (!Utils.IsNullOrEmpty(useragent))
+                        if (Utils.IsNotEmpty(useragent))
                         {
                             wsSettings.headers.UserAgent = useragent;
                         }
@@ -897,11 +902,11 @@ namespace ServiceLib.Handler.CoreConfig
                     case nameof(ETransport.httpupgrade):
                         HttpupgradeSettings4Ray httpupgradeSettings = new();
 
-                        if (!Utils.IsNullOrEmpty(node.path))
+                        if (Utils.IsNotEmpty(node.path))
                         {
                             httpupgradeSettings.path = node.path;
                         }
-                        if (!Utils.IsNullOrEmpty(host))
+                        if (Utils.IsNotEmpty(host))
                         {
                             httpupgradeSettings.host = host;
                         }
@@ -916,11 +921,11 @@ namespace ServiceLib.Handler.CoreConfig
                             maxConcurrentUploads = 10
                         };
 
-                        if (!Utils.IsNullOrEmpty(node.path))
+                        if (Utils.IsNotEmpty(node.path))
                         {
                             splithttpSettings.path = node.path;
                         }
-                        if (!Utils.IsNullOrEmpty(host))
+                        if (Utils.IsNotEmpty(host))
                         {
                             splithttpSettings.host = host;
                         }
@@ -931,7 +936,7 @@ namespace ServiceLib.Handler.CoreConfig
                     case nameof(ETransport.h2):
                         HttpSettings4Ray httpSettings = new();
 
-                        if (!Utils.IsNullOrEmpty(host))
+                        if (Utils.IsNotEmpty(host))
                         {
                             httpSettings.host = Utils.String2List(host);
                         }
@@ -954,7 +959,7 @@ namespace ServiceLib.Handler.CoreConfig
                         streamSettings.quicSettings = quicsettings;
                         if (node.streamSecurity == Global.StreamSecurity)
                         {
-                            if (!Utils.IsNullOrEmpty(sni))
+                            if (Utils.IsNotEmpty(sni))
                             {
                                 streamSettings.tlsSettings.serverName = sni;
                             }
@@ -1000,7 +1005,7 @@ namespace ServiceLib.Handler.CoreConfig
                             request = request.Replace("$requestUserAgent$", $"\"{useragent}\"");
                             //Path
                             string pathHttp = @"/";
-                            if (!Utils.IsNullOrEmpty(node.path))
+                            if (Utils.IsNotEmpty(node.path))
                             {
                                 string[] arrPath = node.path.Split(',');
                                 pathHttp = string.Join("\",\"", arrPath);
@@ -1033,7 +1038,7 @@ namespace ServiceLib.Handler.CoreConfig
                 }
 
                 //Outbound Freedom domainStrategy
-                if (!Utils.IsNullOrEmpty(domainStrategy4Freedom))
+                if (Utils.IsNotEmpty(domainStrategy4Freedom))
                 {
                     var outbound = v2rayConfig.outbounds[1];
                     outbound.settings.domainStrategy = domainStrategy4Freedom;
@@ -1097,7 +1102,7 @@ namespace ServiceLib.Handler.CoreConfig
                         address = Utils.IsNullOrEmpty(dNSItem?.domainDNSAddress) ? Global.DomainDNSAddress.FirstOrDefault() : dNSItem?.domainDNSAddress,
                         domains = [node.address]
                     };
-                    servers.AsArray().Insert(0, JsonUtils.SerializeToNode(dnsServer));
+                    servers.AsArray().Add(JsonUtils.SerializeToNode(dnsServer));
                 }
             }
             return 0;
@@ -1157,7 +1162,7 @@ namespace ServiceLib.Handler.CoreConfig
         {
             //fragment proxy
             if (_config.coreBasicItem.enableFragment
-                && !Utils.IsNullOrEmpty(v2rayConfig.outbounds[0].streamSettings?.security))
+                && Utils.IsNotEmpty(v2rayConfig.outbounds[0].streamSettings?.security))
             {
                 var fragmentOutbound = new Outbounds4Ray
                 {
@@ -1199,7 +1204,7 @@ namespace ServiceLib.Handler.CoreConfig
                 var txtOutbound = Utils.GetEmbedText(Global.V2raySampleOutbound);
 
                 //Previous proxy
-                var prevNode = LazyConfig.Instance.GetProfileItemViaRemarks(subItem.prevProfile!);
+                var prevNode = LazyConfig.Instance.GetProfileItemViaRemarks(subItem.prevProfile);
                 if (prevNode is not null
                     && prevNode.configType != EConfigType.Custom
                     && prevNode.configType != EConfigType.Hysteria2
@@ -1218,7 +1223,7 @@ namespace ServiceLib.Handler.CoreConfig
                 }
 
                 //Next proxy
-                var nextNode = LazyConfig.Instance.GetProfileItemViaRemarks(subItem.nextProfile!);
+                var nextNode = LazyConfig.Instance.GetProfileItemViaRemarks(subItem.nextProfile);
                 if (nextNode is not null
                     && nextNode.configType != EConfigType.Custom
                     && nextNode.configType != EConfigType.Hysteria2

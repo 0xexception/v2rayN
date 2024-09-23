@@ -43,7 +43,7 @@
                 }
 
                 string addressFileName = node.address;
-                if (string.IsNullOrEmpty(addressFileName))
+                if (Utils.IsNullOrEmpty(addressFileName))
                 {
                     msg = ResUI.FailedGetDefaultConfiguration;
                     return -1;
@@ -63,6 +63,12 @@
                 string tagYamlStr3 = "!!str";
                 var txtFile = File.ReadAllText(addressFileName);
                 txtFile = txtFile.Replace(tagYamlStr1, tagYamlStr2);
+
+                //YAML anchors
+                if (txtFile.Contains("<<:") && txtFile.Contains("*") && txtFile.Contains("&"))
+                {
+                    txtFile = YamlUtils.PreprocessYaml(txtFile);
+                }
 
                 var fileContent = YamlUtils.FromYaml<Dictionary<string, object>>(txtFile);
                 if (fileContent == null)
@@ -111,7 +117,7 @@
                 if (_config.tunModeItem.enableTun)
                 {
                     string tun = Utils.GetEmbedText(Global.ClashTunYaml);
-                    if (!string.IsNullOrEmpty(tun))
+                    if (Utils.IsNotEmpty(tun))
                     {
                         var tunContent = YamlUtils.FromYaml<Dictionary<string, object>>(tun);
                         if (tunContent != null)
