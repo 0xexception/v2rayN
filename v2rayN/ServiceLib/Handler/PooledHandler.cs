@@ -117,7 +117,7 @@ namespace ServiceLib.Handler
             using (Process process = Process.Start(psi))
             {
                 // 向命令行输入启动命令
-                var path = Path.Combine("venv", Utils.IsWindows() ? "Scripts" : "bin", "python");
+                var path = Path.Combine("scripts", "venv", Utils.IsWindows() ? "Scripts" : "bin", "python");
                 process.StandardInput.WriteLine($"{path} \"{filePath}\"");
                 process.StandardInput.WriteLine("exit"); // 退出命令行
                 // 可选：读取输出
