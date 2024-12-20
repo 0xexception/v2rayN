@@ -224,16 +224,6 @@ namespace ServiceLib.Handler
                     List<ServerTestItem> _selecteds = new List<ServerTestItem>();
                     foreach (var it in items)
                     {
-                        if (it.configType == EConfigType.Custom)
-                        {
-                            continue;
-                        }
-
-                        if (it.port <= 0)
-                        {
-                            continue;
-                        }
-
                         _selecteds.Add(new ServerTestItem()
                         {
                             indexId = it.indexId,
@@ -411,17 +401,23 @@ namespace ServiceLib.Handler
                     {
                         continue;
                     }
+                    // 测试RealPing
+                    WebProxy webProxy = new(Global.Loopback, it.port);
+                    int responseTime =
+                        await downloadHandle.GetRealPingTime(_config.speedTestItem.speedPingTestUrl,
+                            webProxy, 10);
 
+                    ProfileExHandler.Instance.SetTestDelay(it.indexId, responseTime.ToString());
+                
+                    // 测试Speed
                     ProfileExHandler.Instance.SetTestSpeed(it.indexId, "-1");
-
+                    if(responseTime < 0) continue;
                     SpeedTestResult res = new()
                         { IndexId = it.indexId, Speed = ResUI.Speedtesting };
                     MessageBus.Current.SendMessage(res, Global.CommandSpeedTestResult);
 
                     var item = LazyConfig.Instance.GetProfileItem(it.indexId);
                     if (item is null) continue;
-
-                    WebProxy webProxy = new(Global.Loopback, it.port);
 
                     await downloadHandle.DownloadDataAsync(url, webProxy, timeout, (bool success, string msg) =>
                     {
