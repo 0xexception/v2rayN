@@ -872,5 +872,18 @@ namespace ServiceLib.Common
         }
 
         #endregion TempPath
+        
+        public static string GetCountryRemark(string address)
+        {
+            string url = $"http://demo.ip-api.com/json/{address}?fields=66842623&lang=en";
+            var downloadHandle = new DownloadHandler();
+            string result = downloadHandle.TryDownloadString(url, false, Global.UserAgentTexts[Global.UserAgent[0]])
+                .Result ?? "Other";
+            var deserialize = JsonUtils.Deserialize<Dictionary<string, object>>(result) ??
+                              new Dictionary<string, object>();
+            string? status = deserialize["status"].ToString();
+            result = status == "success" ? result = deserialize["country"].ToString() ?? "Other" : "Other";
+            return result;
+        }
     }
 }

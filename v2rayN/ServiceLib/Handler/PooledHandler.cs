@@ -57,7 +57,7 @@ namespace ServiceLib.Handler
             while (true)
             {
                 await UpdatePoolingNow();
-                await Task.Delay(1000 * 60); // 每分钟筛选一次 
+                await Task.Delay(1000 * 60 * 5); // 每5分钟筛选一次 
             }
         }
 
@@ -161,6 +161,7 @@ namespace ServiceLib.Handler
                                 totalLine++;
                                 strData = newLine;
                                 int ret = ConfigHandler.AddBatchServers(_config, strData, null, true);
+                                _updateFunc(false, (strData.Length > 30 ? strData.Substring(0, 30): strData) + "... " + ret.ToString());
                                 count += ret;
                             }
                         }
@@ -168,6 +169,7 @@ namespace ServiceLib.Handler
                         {
                             totalLine++;
                             int ret = ConfigHandler.AddBatchServers(_config, strData, null, true);
+                            _updateFunc(false, (strData.Length > 30 ? strData.Substring(0, 30): strData) + "... " + ret.ToString());
                             count += ret;
                         }
                     }
@@ -177,16 +179,11 @@ namespace ServiceLib.Handler
             }
         }
 
+
+
         public void DispatchSubid(ProfileItem profileItem)
         {
-            string url = $"http://demo.ip-api.com/json/{profileItem.address}?fields=66842623&lang=en";
-            var downloadHandle = new DownloadHandler();
-            string result = downloadHandle.TryDownloadString(url, false, Global.UserAgentTexts[Global.UserAgent[0]])
-                .Result ?? "Other";
-            var deserialize = JsonUtils.Deserialize<Dictionary<string, object>>(result) ??
-                              new Dictionary<string, object>();
-            string? status = deserialize["status"].ToString();
-            result = status == "success" ? result = deserialize["country"].ToString() ?? "Other" : "Other";
+            string result = Utils.GetCountryRemark(profileItem.address);
 
             var subItems = LazyConfig.Instance.SubItems();
             var subItem = subItems.FirstOrDefault(s => s.remarks == result);
@@ -211,6 +208,7 @@ namespace ServiceLib.Handler
             Task.Run(async () =>
             {
                 _semaphore.WaitOne();
+                Thread.Sleep(3000);
                 _updateFunc(false, "Start counting all scores.");
                 CoreHandler? coreHandler = null;
                 int pid = -1;
@@ -339,6 +337,7 @@ namespace ServiceLib.Handler
         public async Task UpdatePoolingNow()
         {
             _semaphore.WaitOne();
+            Thread.Sleep(3000);
             _updateFunc(false, "Start filtering pooled nodes.");
             int pid = -1;
             CoreHandler? coreHandler = null;

@@ -908,7 +908,8 @@ namespace ServiceLib.Handler
                                   streamSecurity = t.streamSecurity,
                                   delay = t33 == null ? 0 : t33.delay,
                                   speed = t33 == null ? 0 : t33.speed,
-                                  sort = t33 == null ? 0 : t33.sort
+                                  sort = t33 == null ? 0 : t33.sort,
+                                  score = t33 == null ? 0 : t33.score
                               }).ToList();
 
             Enum.TryParse(colName, true, out EServerColName name);
@@ -934,6 +935,10 @@ namespace ServiceLib.Handler
 
                 case EServerColName.subRemarks:
                     propertyName = "subid";
+                    break;
+
+                case EServerColName.scoreVal:
+                    propertyName = "score";
                     break;
 
                 default:
@@ -1217,7 +1222,25 @@ namespace ServiceLib.Handler
                 {
                     continue;
                 }
-
+                // CHANGE -> 增加国家筛选功能，暂时强制写死
+                // CHANGE -> 增加去重功能，仅根据IP地址
+                if (isSub && Utils.IsNullOrEmpty(subid))
+                {
+                    bool exist =
+                        lstOriSub != null && lstOriSub.Exists(t => t.isSub == isSub && t.address == profileItem.address);
+                    if (exist)
+                    {
+                        continue;
+                    }
+                    string countryRemark = Utils.GetCountryRemark(profileItem.address);
+                    //Console.WriteLine(profileItem.remarks+" "+countryRemark);
+                    if (!string.Equals("United States", countryRemark))
+                    {
+                        continue;
+                    }
+                    
+                }
+                
                 //exist sub items
                 if (isSub && Utils.IsNotEmpty(subid))
                 {
