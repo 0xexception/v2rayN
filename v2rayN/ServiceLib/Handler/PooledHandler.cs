@@ -118,6 +118,7 @@ namespace ServiceLib.Handler
             {
                 // 向命令行输入启动命令
                 var path = Path.Combine("scripts", "venv", Utils.IsWindows() ? "Scripts" : "bin", "python");
+                _updateFunc(false, string.Format("Use Python Location：{0}", path));
                 process.StandardInput.WriteLine($"{path} \"{filePath}\"");
                 process.StandardInput.WriteLine("exit"); // 退出命令行
                 // 可选：读取输出
@@ -162,7 +163,7 @@ namespace ServiceLib.Handler
                                 strData = newLine;
                                 int ret = ConfigHandler.AddBatchServers(_config, strData, null, true);
                                 _updateFunc(false, (strData.Length > 30 ? strData.Substring(0, 30): strData) + "... " + ret.ToString());
-                                count += ret;
+                                if(ret > 0) count += ret;
                             }
                         }
                         else
@@ -170,7 +171,7 @@ namespace ServiceLib.Handler
                             totalLine++;
                             int ret = ConfigHandler.AddBatchServers(_config, strData, null, true);
                             _updateFunc(false, (strData.Length > 30 ? strData.Substring(0, 30): strData) + "... " + ret.ToString());
-                            count += ret;
+                            if(ret > 0) count += ret;
                         }
                     }
                 }

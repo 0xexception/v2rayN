@@ -3,7 +3,6 @@ FROM mcr.microsoft.com/dotnet/runtime:8.0
 WORKDIR /app
 
 COPY ./bin/Release/net8.0/linux-x64/publish .
-COPY requirements.txt ./scripts/
 RUN chmod +x v2rayN.Desktop
 
 # 添加时区环境变量，亚洲，上海
@@ -26,9 +25,11 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # 创建虚拟环境并安装依赖
+WORKDIR /app/scripts
 RUN python3 -m venv venv && \
     ./venv/bin/pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && \
     ./venv/bin/pip install --upgrade pip && \
-    ./venv/bin/pip install -r scripts/requirements.txt
+    ./venv/bin/pip install -r requirements.txt
 
+WORKDIR /app
 ENTRYPOINT ["bash" , "-c","xhost + && ./v2rayN.Desktop"]
